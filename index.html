@@ -132,7 +132,15 @@
       transform-origin:center;
       will-change: transform;
     }
-
+/* Make sure Yes stays on top */
+#yesBtn{
+  position: relative;
+  z-index: 10;
+}
+#laneNo{
+  position: relative;
+  z-index: 1;
+}
     .result{
       margin-top: 12px;
       font-weight: 850;
@@ -375,7 +383,7 @@
     accepted = true;
 
    ended = true;                 // stop all no-button motion
-    noBtn.style.display = "none"; // prevent blocking Yes clicks
+   laneNo.style.display = "none"; // prevent blocking Yes clicks
   } else {
     result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
   }
