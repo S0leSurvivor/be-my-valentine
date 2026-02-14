@@ -332,7 +332,9 @@
 
     /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
     const confettiWrap = document.getElementById("confetti");
-    const CONFETTI = ["💋","❤️","🥰","💖","💘","😍",""];
+    const CONFETTI = ["💋","❤️","🥰","💖","💘","😍"];
+
+    let accepted = false;
 
    function launchConfetti(){
   const count = 90; // bump this up if you want more
@@ -366,16 +368,24 @@
   }
 }
     
-    yesBtn.addEventListener("click", () => {
-      result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
+  yesBtn.addEventListener("click", () => {
 
-        requestAnimationFrame(() => {
+  if (!accepted) {
+    result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
+    accepted = true;
+  } else {
+    result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
+  }
+
+  requestAnimationFrame(() => {
     launchConfetti();
-    setTimeout(launchConfetti, 260); // optional second burst = more reliable + more fun
+    setTimeout(launchConfetti, 250);
   });
 
+});
+
       ended = true;
-      yesBtn.disabled = true;
+      //yesBtn.disabled = true;
       noBtn.disabled = true;
       noBtn.style.opacity = "0.45";
       yesBtn.style.opacity = "0.95";
