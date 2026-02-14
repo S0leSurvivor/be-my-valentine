@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Be My Valentine?</title>
+
+  <style>
+    :root{
+      --bg:#000;
+      --card:#fff;
+      --text:#151515;
+      --accent:#ff2f7d;
+      --border:#fff;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+      overflow:hidden;
+      background: var(--bg);
+    }
+
+    /* Floating/scolling emoji layer */
+    .floaties{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.65;
+    }
+    .floaty{
+      position:absolute;
+      bottom:-70px;
+      opacity:0;
+      will-change:transform,opacity;
+      animation: floatUp linear infinite;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,.25));
+    }
+    @keyframes floatUp{
+      0%   { transform: translateY(0) translateX(0) scale(var(--sc)); opacity:0; }
+      12%  { opacity:.85; }
+      85%  { opacity:.85; }
+      100% { transform: translateY(-120vh) translateX(var(--drift)) scale(var(--sc)); opacity:0; }
+    }
+
+    .card{
+      position:relative;
+      z-index:2;
+      width:min(560px, 92vw);
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 22px 18px 18px;
+      box-shadow: 0 18px 48px rgba(0,0,0,.55);
+      text-align:center;
+    }
+
+    .image-wrap{
+      width:100%;
+      aspect-ratio:1/1;
+      border-radius:18px;
+      overflow:hidden;
+      border: 2px solid var(--border);
+      background:#f2f2f2;
+      margin-bottom:16px;
+    }
+    .image-wrap img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    h1{
+      margin: 16px 0 10px;
+      font-size: clamp(26px, 4.6vw, 36px);
+      letter-spacing:.2px;
+    }
+    p{ margin: 0 0 14px; opacity:.85; }
+
+    .btn-arena{
+      width: min(420px, 96%);
+      margin: 8px auto 0;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items:center;
+    }
+
+    .lane{
+      position:relative;
+      height:58px;
+      display:grid;
+      place-items:center;
+      overflow:visible;
+    }
+
+    .btn{
+      width: 160px;
+      height: 46px;
+      border: 0;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 8px 18px rgba(0,0,0,.18);
+      transition: transform 120ms ease, opacity 120ms ease, filter 120ms ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active{ transform: scale(.985); }
+    .btn:disabled{ cursor: default; }
+
+    /* No button uses CSS vars for movement; starts centered */
+    #noBtn{
+      position:absolute;
+      left:50%;
+      top:50%;
+      --dx: 0px;
+      --dy: 0px;
+      --s: 1;
+      transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--s));
+      transform-origin:center;
+      will-change: transform;
+    }
+
+    .result{
+      margin-top: 12px;
+      font-weight: 850;
+      font-size: 20px;
+      min-height: 32px;
+      line-height: 1.1;
+    }
+    .big-heat{
+      display:block;
+      font-size: 52px;
+      line-height: 1;
+      margin-top: 6px;
+    }
+
+    /* DOM Confetti layer */
+    .confetti{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:3;
+      overflow:hidden;
+    }
+    .confetti-piece{
+      position:absolute;
+      top:-40px;
+      will-change:transform,opacity;
+      animation: confettiFall var(--dur) linear forwards;
+      filter: drop-shadow(0 6px 8px rgba(0,0,0,.25));
+      font-size: var(--fs);
+      opacity: .95;
+    }
+    @keyframes confettiFall{
+      0%   { transform: translate3d(var(--x), -50px, 0) rotate(0deg); opacity:0; }
+      10%  { opacity:1; }
+      100% { transform: translate3d(calc(var(--x) + var(--drift)), 110vh, 0) rotate(var(--rot)); opacity:0.98; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="floaties" id="floaties"></div>
+  <div class="confetti" id="confetti"></div>
+
+  <main class="card" id="card" aria-live="polite">
+    <div class="image-wrap">
+      <img src="valentine.png" alt="Romantic moment" />
+    </div>
+
+    <h1>WILL YOU BE MY VALENTINE?</h1>
+    <p>Choose wisely.</p>
+
+    <div class="btn-arena">
+      <div class="lane">
+        <button class="btn" id="yesBtn" type="button">Yes</button>
+      </div>
+
+      <div class="lane" id="laneNo">
+        <button class="btn" id="noBtn" type="button">No</button>
+      </div>
+    </div>
+
+    <div class="result" id="result"></div>
+  </main>
+
+  <script>
+    /* ---------- Floating scroll emojis ---------- */
+    const floatiesWrap = document.getElementById("floaties");
+    const FLOATS = ["🥰","❤️","💋"];
+
+    function spawnFloaty(){
+      const el = document.createElement("div");
+      el.className = "floaty";
+      el.textContent = FLOATS[Math.floor(Math.random() * FLOATS.length)];
+
+      const left = Math.random() * 100;
+      const dur  = 6 + Math.random() * 7;
+      const drift = (Math.random()*140 - 70) + "px";
+      const sc = (0.8 + Math.random()*1.35).toFixed(2);
+
+      el.style.left = left + "vw";
+      el.style.animationDuration = dur + "s";
+      el.style.setProperty("--drift", drift);
+      el.style.setProperty("--sc", sc);
+      el.style.fontSize = (18 + Math.random()*26).toFixed(0) + "px";
+
+      floatiesWrap.appendChild(el);
+      setTimeout(() => el.remove(), dur * 1000);
+    }
+    for (let i=0;i<12;i++) setTimeout(spawnFloaty, i*220);
+    setInterval(spawnFloaty, 520);
+
+    /* ---------- No button: shrinks + jumps around the CARD (only when close/click) ---------- */
+    const card  = document.getElementById("card");
+    const laneNo = document.getElementById("laneNo");
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const result = document.getElementById("result");
+
+    let ended = false;
+    let armed = false;
+
+    let dx = 0, dy = 0;
+    let s  = 1.0;
+
+    function setNoState(){
+      noBtn.style.setProperty("--dx", dx.toFixed(1) + "px");
+      noBtn.style.setProperty("--dy", dy.toFixed(1) + "px");
+      noBtn.style.setProperty("--s",  s.toFixed(3));
+    }
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+    function rand(min,max){ return Math.random()*(max-min)+min; }
+
+    function jumpToClientXY(targetX, targetY){
+      const c = card.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const minX = c.left + b.width/2 + 10;
+      const maxX = c.right - b.width/2 - 10;
+      const minY = c.top  + b.height/2 + 10;
+      const maxY = c.bottom - b.height/2 - 10;
+
+      const cx = clamp(targetX, minX, maxX);
+      const cy = clamp(targetY, minY, maxY);
+
+      const lane = laneNo.getBoundingClientRect();
+      const baseX = lane.left + lane.width/2;
+      const baseY = lane.top  + lane.height/2;
+
+      dx = cx - baseX;
+      dy = cy - baseY;
+      setNoState();
+    }
+
+    // Always shrinking
+    setInterval(() => {
+      if (ended) return;
+      s = Math.max(0.18, s - 0.0045);
+      setNoState();
+    }, 220);
+
+    function tryEvade(clientX, clientY){
+      if (ended) return;
+
+      const b = noBtn.getBoundingClientRect();
+      const bx = b.left + b.width/2;
+      const by = b.top  + b.height/2;
+      const dist = Math.hypot(clientX - bx, clientY - by);
+
+      const trigger = 110;
+      if (dist < trigger){
+        armed = true;
+
+        const awayX = (bx - clientX) / (dist || 1);
+        const awayY = (by - clientY) / (dist || 1);
+        const jump = 180 + Math.random()*220;
+
+        const targetX = bx + awayX * jump + rand(-80, 80);
+        const targetY = by + awayY * (jump * 0.55) + rand(-70, 70);
+
+        s = Math.max(0.18, s - 0.03);
+        jumpToClientXY(targetX, targetY);
+      }
+    }
+
+    card.addEventListener("mousemove", (e) => tryEvade(e.clientX, e.clientY));
+
+    card.addEventListener("pointerdown", (e) => {
+      tryEvade(e.clientX, e.clientY);
+    }, { passive: true });
+
+    card.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse") tryEvade(e.clientX, e.clientY);
+    }, { passive: true });
+
+    noBtn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      armed = true;
+      tryEvade(e.clientX, e.clientY);
+      const c = card.getBoundingClientRect();
+      jumpToClientXY(
+        rand(c.left + 40, c.right - 40),
+        rand(c.top + 40,  c.bottom - 40)
+      );
+    }, { passive: false });
+
+    setInterval(() => {
+      if (ended) return;
+      if (!armed) return;
+      if (Math.random() < 0.55) return;
+      const c = card.getBoundingClientRect();
+      jumpToClientXY(
+        rand(c.left + 40, c.right - 40),
+        rand(c.top + 40,  c.bottom - 40)
+      );
+    }, 650);
+
+    /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
+    const confettiWrap = document.getElementById("confetti");
+    const CONFETTI = ["💋","❤️","🥰","💗","💖","💘","💕","💞"];
+
+    function launchConfetti(){
+      confettiWrap.innerHTML = "";
+
+      const count = 90;
+      for (let i=0;i<count;i++){
+        const el = document.createElement("div");
+        el.className = "confetti-piece";
+        el.textContent = CONFETTI[Math.floor(Math.random()*CONFETTI.length)];
+
+        const x = Math.random() * 100;
+        const drift = (Math.random()*200 - 100);
+        const rot = (Math.random()*720 - 360);
+        const dur = (1.6 + Math.random()*1.2).toFixed(2) + "s";
+        const fs = (18 + Math.random()*22).toFixed(0) + "px";
+        const delay = (Math.random()*0.25).toFixed(2) + "s";
+
+        el.style.setProperty("--x", x + "vw");
+        el.style.setProperty("--drift", drift + "px");
+        el.style.setProperty("--rot", rot + "deg");
+        el.style.setProperty("--dur", dur);
+        el.style.setProperty("--fs", fs);
+        el.style.animationDelay = delay;
+
+        confettiWrap.appendChild(el);
+
+        // cleanup after animation
+        setTimeout(() => el.remove(), (parseFloat(dur) + parseFloat(delay) + 0.2) * 1000);
+      }
+    }
+
+    yesBtn.addEventListener("click", () => {
+      result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
+      launchConfetti();
+
+      ended = true;
+      yesBtn.disabled = true;
+      noBtn.disabled = true;
+      noBtn.style.opacity = "0.45";
+      yesBtn.style.opacity = "0.95";
+    });
+
+    setNoState();
+  </script>
+</body>
+</html>
