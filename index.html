@@ -155,15 +155,16 @@
       z-index:3;
       overflow:hidden;
     }
-    .confetti-piece{
-      position:absolute;
-      top:-40px;
-      will-change:transform,opacity;
-      animation: confettiFall var(--dur) linear forwards;
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,.25));
-      font-size: var(--fs);
-      opacity: .95;
-    }
+   .confetti-piece {
+  position: fixed;
+  top: -20px;
+  left: var(--x);
+  font-size: var(--fs);
+  animation: fall var(--dur) linear forwards;
+
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
     @keyframes confettiFall{
       0%   { transform: translate3d(var(--x), -50px, 0) rotate(0deg); opacity:0; }
       10%  { opacity:1; }
@@ -334,7 +335,7 @@
     const CONFETTI = ["💋","❤️","🥰","💖","💘","😍",""];
 
    function launchConfetti(){
-  const count = 140; // bump this up if you want more
+  const count = 90; // bump this up if you want more
 
   for (let i=0;i<count;i++){
     const el = document.createElement("div");
@@ -370,7 +371,7 @@
 
         requestAnimationFrame(() => {
     launchConfetti();
-    setTimeout(launchConfetti, 280); // optional second burst = more reliable + more fun
+    setTimeout(launchConfetti, 260); // optional second burst = more reliable + more fun
   });
 
       ended = true;
