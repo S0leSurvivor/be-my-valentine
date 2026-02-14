@@ -165,7 +165,7 @@
       position:fixed;
       inset:0;
       pointer-events:none;
-      z-index:3;
+      z-index:1;
       overflow:hidden;
     }
   .confetti-piece {
@@ -384,7 +384,8 @@
     
  yesBtn.addEventListener("click", () => {
 
-   console.log("YES clicked", accepted);
+   result.setAttribute("data-clicks", (Number(result.getAttribute("data-clicks") || 0) + 1));
+   result.insertAdjacentHTML("beforeend", `<div style="font-size:12px;opacity:.6;margin-top:6px;">clicks: ${result.getAttribute("data-clicks")}</div>`);
    
   // toggle message
   if (!accepted) {
@@ -392,7 +393,8 @@
     accepted = true;
 
    ended = true;                 // stop all no-button motion
-   laneNo.style.display = "none"; // prevent blocking Yes clicks
+   laneNo.style.visibility = "hidden";
+laneNo.style.pointerEvents = "none";// prevent blocking Yes clicks
   } else {
     result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
   }
