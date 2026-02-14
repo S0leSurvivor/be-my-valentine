@@ -161,21 +161,24 @@
     }
 
     /* DOM Confetti layer */
-    .confetti{
-      position:fixed;
-      inset:0;
-      pointer-events:none;
-      z-index:1;
-      overflow:hidden;
-    }
-  .confetti-piece {
+.confetti{
+  position:fixed;
+  inset:0;
+  z-index:999;
+  pointer-events:none;
+  overflow:hidden;
+  transform: translateZ(0);
+  contain: layout paint;
+}
+
+.confetti-piece{
   position: fixed;
   top: -20px;
   left: 0;
   font-size: var(--fs);
   animation: confettiFall var(--dur) linear forwards;
 
-  transform: translateZ(0);
+  will-change: transform;
   backface-visibility: hidden;
   pointer-events: none;
 }
