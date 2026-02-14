@@ -162,13 +162,11 @@
 
     /* DOM Confetti layer */
 .confetti{
-  position:fixed;
-  inset:0;
-  z-index:999;
-  pointer-events:none;
-  overflow:hidden;
-  transform: translateZ(0);
-  contain: layout paint;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647; /* max-ish */
+  pointer-events: none;
+  overflow: hidden;
 }
 
 .confetti-piece{
@@ -346,7 +344,17 @@
         rand(c.top + 40,  c.bottom - 40)
       );
     }, 650);
-
+// Ensure confetti layer is always on top (Mac + iPhone)
+let confettiWrap = document.getElementById("confetti");
+if (!confettiWrap) {
+  confettiWrap = document.createElement("div");
+  confettiWrap.id = "confetti";
+  confettiWrap.className = "confetti";
+  document.body.appendChild(confettiWrap);
+} else {
+  // move it to the very end of body so it paints last
+  document.body.appendChild(confettiWrap);
+}
     /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
     const confettiWrap = document.getElementById("confetti");
     const CONFETTI = ["💋","❤️","🥰","💖","💘","😍"];
