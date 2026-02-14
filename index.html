@@ -14,6 +14,11 @@
       --border:#fff;
     }
 
+    /* Make sure overlays can never block clicks */
+.floaties, .floaty, .confetti, .confetti-piece {
+  pointer-events: none !important;
+}
+
     *{ box-sizing:border-box; }
 
     body{
@@ -163,15 +168,16 @@
       z-index:3;
       overflow:hidden;
     }
-   .confetti-piece {
+  .confetti-piece {
   position: fixed;
   top: -20px;
-  left: var(--x);
+  left: 0;
   font-size: var(--fs);
   animation: confettiFall var(--dur) linear forwards;
 
   transform: translateZ(0);
   backface-visibility: hidden;
+  pointer-events: none;
 }
     @keyframes confettiFall{
       0%   { transform: translate3d(var(--x), -50px, 0) rotate(0deg); opacity:0; }
@@ -377,6 +383,9 @@
 }
     
  yesBtn.addEventListener("click", () => {
+
+   console.log("YES clicked", accepted);
+   
   // toggle message
   if (!accepted) {
     result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
