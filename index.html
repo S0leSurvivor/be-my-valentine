@@ -331,41 +331,49 @@
 
     /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
     const confettiWrap = document.getElementById("confetti");
-    const CONFETTI = ["💋","❤️","🥰","💙","💖","💘","😍","💞"];
+    const CONFETTI = ["💋","❤️","🥰","💖","💘","😍",""];
 
-    function launchConfetti(){
-      confettiWrap.innerHTML = "";
+   function launchConfetti(){
+  const count = 140; // bump this up if you want more
 
-      const count = 160;
-      for (let i=0;i<count;i++){
-        const el = document.createElement("div");
-        el.className = "confetti-piece";
-        el.textContent = CONFETTI[Math.floor(Math.random()*CONFETTI.length)];
+  for (let i=0;i<count;i++){
+    const el = document.createElement("div");
+    el.className = "confetti-piece";
+    el.textContent = CONFETTI[Math.floor(Math.random()*CONFETTI.length)];
 
-        const x = Math.random() * 100;
-        const drift = (Math.random()*200 - 100);
-        const rot = (Math.random()*720 - 360);
-        const dur = (1.6 + Math.random()*1.2).toFixed(2) + "s";
-        const fs = (18 + Math.random()*22).toFixed(0) + "px";
-        const delay = (Math.random()*0.25).toFixed(2) + "s";
+    const x = Math.random() * 100;
+    const drift = (Math.random()*220 - 110);
+    const rot = (Math.random()*720 - 360);
+    const durNum = 1.7 + Math.random()*1.2;         // number
+    const dur = durNum.toFixed(2) + "s";
+    const fs = (18 + Math.random()*22).toFixed(0) + "px";
+    const delayNum = Math.random()*0.18;            // number
+    const delay = delayNum.toFixed(2) + "s";
 
-        el.style.setProperty("--x", x + "vw");
-        el.style.setProperty("--drift", drift + "px");
-        el.style.setProperty("--rot", rot + "deg");
-        el.style.setProperty("--dur", dur);
-        el.style.setProperty("--fs", fs);
-        el.style.animationDelay = delay;
+    el.style.setProperty("--x", x + "vw");
+    el.style.setProperty("--drift", drift + "px");
+    el.style.setProperty("--rot", rot + "deg");
+    el.style.setProperty("--dur", dur);
+    el.style.setProperty("--fs", fs);
+    el.style.animationDelay = delay;
 
-        confettiWrap.appendChild(el);
+    confettiWrap.appendChild(el);
 
-        // cleanup after animation
-        setTimeout(() => el.remove(), (parseFloat(dur) + parseFloat(delay) + 0.2) * 1000);
+    // Cleanup after it finishes (duration + delay + buffer)
+    const totalMs = (durNum + delayNum + 0.3) * 1000;
+    setTimeout(() => el.remove(), totalMs);
+  }
+}
       }
     }
 
     yesBtn.addEventListener("click", () => {
       result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
-      launchConfetti();
+
+        requestAnimationFrame(() => {
+    launchConfetti();
+    setTimeout(launchConfetti, 280); // optional second burst = more reliable + more fun
+  });
 
       ended = true;
       yesBtn.disabled = true;
