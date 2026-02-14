@@ -374,9 +374,8 @@
     result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
     accepted = true;
 
-    // stop the No game (optional)
-    noBtn.disabled = true;
-    noBtn.style.opacity = "0.45";
+   ended = true;                 // stop all no-button motion
+    noBtn.style.display = "none"; // prevent blocking Yes clicks
   } else {
     result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
   }
