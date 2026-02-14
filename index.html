@@ -368,29 +368,28 @@
   }
 }
     
-  yesBtn.addEventListener("click", () => {
-
+ yesBtn.addEventListener("click", () => {
+  // toggle message
   if (!accepted) {
     result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
     accepted = true;
+
+    // stop the No game (optional)
+    noBtn.disabled = true;
+    noBtn.style.opacity = "0.45";
   } else {
     result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
   }
 
+  // always fire confetti
   requestAnimationFrame(() => {
     launchConfetti();
     setTimeout(launchConfetti, 250);
   });
-
 });
 
-      ended = true;
-      //yesBtn.disabled = true;
-      noBtn.disabled = true;
-      noBtn.style.opacity = "0.45";
-      yesBtn.style.opacity = "0.95";
-    });
 
+// keep this after your listeners
     setNoState();
   </script>
 </body>
