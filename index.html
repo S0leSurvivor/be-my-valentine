@@ -181,7 +181,7 @@
       <img src="valentine.png" alt="Romantic moment" />
     </div>
 
-    <h1>WILL YOU BE MY VALENTINE?</h1>
+    <h1>Will you be my Valentine?</h1>
     <p>Choose wisely.</p>
 
     <div class="btn-arena">
@@ -200,7 +200,7 @@
   <script>
     /* ---------- Floating scroll emojis ---------- */
     const floatiesWrap = document.getElementById("floaties");
-    const FLOATS = ["🥰","❤️","💋"];
+    const FLOATS = ["😘","❤️","💋"];
 
     function spawnFloaty(){
       const el = document.createElement("div");
@@ -331,12 +331,12 @@
 
     /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
     const confettiWrap = document.getElementById("confetti");
-    const CONFETTI = ["💋","❤️","🥰","💗","💖","💘","💕","💞"];
+    const CONFETTI = ["💋","❤️","🥰","💙","💖","💘","😍","💞"];
 
     function launchConfetti(){
       confettiWrap.innerHTML = "";
 
-      const count = 90;
+      const count = 160;
       for (let i=0;i<count;i++){
         const el = document.createElement("div");
         el.className = "confetti-piece";
