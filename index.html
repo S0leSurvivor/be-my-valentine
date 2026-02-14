@@ -14,11 +14,6 @@
       --border:#fff;
     }
 
-    /* Make sure overlays can never block clicks */
-.floaties, .floaty, .confetti, .confetti-piece {
-  pointer-events: none !important;
-}
-
     *{ box-sizing:border-box; }
 
     body{
@@ -32,13 +27,17 @@
       background: var(--bg);
     }
 
-    /* Floating/scolling emoji layer */
+    /* Make sure overlays can never block clicks */
+    .floaties, .floaty, .confetti, .confetti-piece{
+      pointer-events:none !important;
+    }
+
+    /* Floating/scrolling emoji layer */
     .floaties{
       position:fixed;
       inset:0;
-      pointer-events:none;
       z-index:0;
-      opacity:.65;
+      opacity:.7;
     }
     .floaty{
       position:absolute;
@@ -113,7 +112,7 @@
       border: 0;
       border-radius: 999px;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       background: var(--accent);
       color: #fff;
@@ -124,6 +123,9 @@
     }
     .btn:active{ transform: scale(.985); }
     .btn:disabled{ cursor: default; }
+
+    /* Keep YES above anything that might wander */
+    #yesBtn{ position:relative; z-index:10; }
 
     /* No button uses CSS vars for movement; starts centered */
     #noBtn{
@@ -137,18 +139,10 @@
       transform-origin:center;
       will-change: transform;
     }
-/* Make sure Yes stays on top */
-#yesBtn{
-  position: relative;
-  z-index: 10;
-}
-#laneNo{
-  position: relative;
-  z-index: 1;
-}
+
     .result{
       margin-top: 12px;
-      font-weight: 850;
+      font-weight: 900;
       font-size: 20px;
       min-height: 32px;
       line-height: 1.1;
@@ -160,26 +154,25 @@
       margin-top: 6px;
     }
 
-    /* DOM Confetti layer */
-.confetti{
-  position: fixed;
-  inset: 0;
-  z-index: 2147483647; /* max-ish */
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.confetti-piece{
-  position: fixed;
-  top: -20px;
-  left: 0;
-  font-size: var(--fs);
-  animation: confettiFall var(--dur) linear forwards;
-
-  will-change: transform;
-  backface-visibility: hidden;
-  pointer-events: none;
-}
+    /* Confetti overlay (always on top, never clickable) */
+    .confetti{
+      position:fixed;
+      inset:0;
+      z-index:9999;
+      pointer-events:none;
+      overflow:hidden;
+      transform: translateZ(0);
+    }
+    .confetti-piece{
+      position: fixed;
+      top: -20px;
+      left: 0;
+      font-size: var(--fs);
+      animation: confettiFall var(--dur) linear forwards;
+      will-change: transform;
+      backface-visibility: hidden;
+      pointer-events:none;
+    }
     @keyframes confettiFall{
       0%   { transform: translate3d(var(--x), -50px, 0) rotate(0deg); opacity:0; }
       10%  { opacity:1; }
@@ -190,10 +183,10 @@
 
 <body>
   <div class="floaties" id="floaties"></div>
-  <div class="confetti" id="confetti"></div>
 
   <main class="card" id="card" aria-live="polite">
     <div class="image-wrap">
+      <!-- Put valentine2.png in the same repo folder as index.html -->
       <img src="valentine2.png" alt="Romantic moment" />
     </div>
 
@@ -212,6 +205,9 @@
 
     <div class="result" id="result"></div>
   </main>
+
+  <!-- Keep confetti LAST in body so it paints on top consistently -->
+  <div class="confetti" id="confetti"></div>
 
   <script>
     /* ---------- Floating scroll emojis ---------- */
@@ -235,7 +231,7 @@
       el.style.fontSize = (18 + Math.random()*26).toFixed(0) + "px";
 
       floatiesWrap.appendChild(el);
-      setTimeout(() => el.remove(), dur * 1000);
+      setTimeout(() => el.remove(), dur * 1000 + 200);
     }
     for (let i=0;i<12;i++) setTimeout(spawnFloaty, i*220);
     setInterval(spawnFloaty, 520);
@@ -282,10 +278,10 @@
       setNoState();
     }
 
-    // Always shrinking
+    // Always shrinking (slow)
     setInterval(() => {
       if (ended) return;
-      s = Math.max(0.18, s - 0.0045);
+      s = Math.max(0.18, s - 0.0035);
       setNoState();
     }, 220);
 
@@ -297,32 +293,30 @@
       const by = b.top  + b.height/2;
       const dist = Math.hypot(clientX - bx, clientY - by);
 
-      const trigger = 110;
+      const trigger = 110; // only move when close
       if (dist < trigger){
         armed = true;
 
         const awayX = (bx - clientX) / (dist || 1);
         const awayY = (by - clientY) / (dist || 1);
-        const jump = 180 + Math.random()*220;
+        const jump = 190 + Math.random()*220;
 
-        const targetX = bx + awayX * jump + rand(-80, 80);
-        const targetY = by + awayY * (jump * 0.55) + rand(-70, 70);
+        const targetX = bx + awayX * jump + rand(-90, 90);
+        const targetY = by + awayY * (jump * 0.55) + rand(-80, 80);
 
         s = Math.max(0.18, s - 0.03);
         jumpToClientXY(targetX, targetY);
       }
     }
 
+    // Mouse + touch support
     card.addEventListener("mousemove", (e) => tryEvade(e.clientX, e.clientY));
-
-    card.addEventListener("pointerdown", (e) => {
-      tryEvade(e.clientX, e.clientY);
-    }, { passive: true });
-
+    card.addEventListener("pointerdown", (e) => tryEvade(e.clientX, e.clientY), { passive: true });
     card.addEventListener("pointermove", (e) => {
       if (e.pointerType !== "mouse") tryEvade(e.clientX, e.clientY);
     }, { passive: true });
 
+    // If they actually hit the No button, jump hard
     noBtn.addEventListener("pointerdown", (e) => {
       e.preventDefault();
       armed = true;
@@ -334,6 +328,7 @@
       );
     }, { passive: false });
 
+    // Occasionally jump once it has been "armed"
     setInterval(() => {
       if (ended) return;
       if (!armed) return;
@@ -344,82 +339,62 @@
         rand(c.top + 40,  c.bottom - 40)
       );
     }, 650);
-// Ensure confetti layer is always on top (Mac + iPhone)
-let confettiWrap = document.getElementById("confetti");
-if (!confettiWrap) {
-  confettiWrap = document.createElement("div");
-  confettiWrap.id = "confetti";
-  confettiWrap.className = "confetti";
-  document.body.appendChild(confettiWrap);
-} else {
-  // move it to the very end of body so it paints last
-  document.body.appendChild(confettiWrap);
-}
-    /* ---------- Confetti (DOM) hearts + kisses: reliable everywhere ---------- */
+
+    setNoState();
+
+    /* ---------- Confetti (DOM) hearts + kisses ---------- */
     const confettiWrap = document.getElementById("confetti");
     const CONFETTI = ["💋","❤️","🥰","💖","💘","😍"];
 
     let accepted = false;
 
-   function launchConfetti(){
-  const count = 90; // bump this up if you want more
+    function launchConfetti(){
+      const count = 90;
 
-  for (let i=0;i<count;i++){
-    const el = document.createElement("div");
-    el.className = "confetti-piece";
-    el.textContent = CONFETTI[Math.floor(Math.random()*CONFETTI.length)];
+      for (let i=0;i<count;i++){
+        const el = document.createElement("div");
+        el.className = "confetti-piece";
+        el.textContent = CONFETTI[Math.floor(Math.random()*CONFETTI.length)];
 
-    const x = Math.random() * 100;
-    const drift = (Math.random()*220 - 110);
-    const rot = (Math.random()*720 - 360);
-    const durNum = 1.7 + Math.random()*1.2;         // number
-    const dur = durNum.toFixed(2) + "s";
-    const fs = (18 + Math.random()*22).toFixed(0) + "px";
-    const delayNum = Math.random()*0.18;            // number
-    const delay = delayNum.toFixed(2) + "s";
+        const x = Math.random() * 100;
+        const drift = (Math.random()*220 - 110);
+        const rot = (Math.random()*720 - 360);
+        const durNum = 1.7 + Math.random()*1.2;
+        const fs = (18 + Math.random()*18).toFixed(0) + "px";
+        const delayNum = Math.random()*0.18;
 
-    el.style.setProperty("--x", x + "vw");
-    el.style.setProperty("--drift", drift + "px");
-    el.style.setProperty("--rot", rot + "deg");
-    el.style.setProperty("--dur", dur);
-    el.style.setProperty("--fs", fs);
-    el.style.animationDelay = delay;
+        el.style.setProperty("--x", x + "vw");
+        el.style.setProperty("--drift", drift + "px");
+        el.style.setProperty("--rot", rot + "deg");
+        el.style.setProperty("--dur", durNum.toFixed(2) + "s");
+        el.style.setProperty("--fs", fs);
+        el.style.animationDelay = delayNum.toFixed(2) + "s";
 
-    confettiWrap.appendChild(el);
+        confettiWrap.appendChild(el);
 
-    // Cleanup after it finishes (duration + delay + buffer)
-    const totalMs = (durNum + delayNum + 0.3) * 1000;
-    setTimeout(() => el.remove(), totalMs);
-  }
-}
-    
- yesBtn.addEventListener("click", () => {
+        const totalMs = (durNum + delayNum + 0.35) * 1000;
+        setTimeout(() => el.remove(), totalMs);
+      }
+    }
 
-   result.setAttribute("data-clicks", (Number(result.getAttribute("data-clicks") || 0) + 1));
-   result.insertAdjacentHTML("beforeend", `<div style="font-size:12px;opacity:.6;margin-top:6px;">clicks: ${result.getAttribute("data-clicks")}</div>`);
-   
-  // toggle message
-  if (!accepted) {
-    result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
-    accepted = true;
+    /* ---------- YES button ---------- */
+    yesBtn.addEventListener("click", () => {
+      if (!accepted) {
+        result.innerHTML = `Smart choice, baby girl... 💋<span class="big-heat">❤️‍🔥</span>`;
+        accepted = true;
 
-   ended = true;                 // stop all no-button motion
-   laneNo.style.visibility = "hidden";
-laneNo.style.pointerEvents = "none";// prevent blocking Yes clicks
-  } else {
-    result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
-  }
+        ended = true; // stop the No chaos after success
+        laneNo.style.visibility = "hidden";   // keep spacing
+        laneNo.style.pointerEvents = "none";  // no blocking
+      } else {
+        result.innerHTML = `Again? I like the way you think... 😏<span class="big-heat">❤️‍🔥</span>`;
+      }
 
-  // always fire confetti
-  requestAnimationFrame(() => {
-    launchConfetti();
-    setTimeout(launchConfetti, 250);
-  });
-});
-
-
-// keep this after your listeners
-    setNoState();
+      requestAnimationFrame(() => {
+        launchConfetti();
+        setTimeout(launchConfetti, 250);
+      });
+    });
   </script>
 </body>
 </html>
